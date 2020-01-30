@@ -38,7 +38,7 @@ char * prepro(char *str){
     *pad = 0;
     return start;
 }
-char** tokenize(char *str){
+char** tokenize(char *str,int *parens){
     char *padded = prepro(str);
     char *token = strtok(padded, " ");
     int count = 0;
@@ -46,10 +46,13 @@ char** tokenize(char *str){
       count++;
       token = strtok(NULL, " ");
     }
+    *parens = 0;
     char **array = malloc(sizeof(char*)*(count+1));
     char **a = array;
     char *p = padded;
     while (*p){
+        if(*p == '(') (*parens)--;
+        if(*p == ')') (*parens)++;
         *a++ = p;
         p = p + strlen(p) + 1;
     }

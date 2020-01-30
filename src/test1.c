@@ -9,6 +9,20 @@
 int tests_run = 0;
 int tests_error = 0;
  
+static char *test_missing_rparen(){
+    char str[] = "Da ( ()";
+    int parens;
+    char **array = tokenize(str,&parens);
+    mu_assert("Error - test_missing_rparen 1.0",parens == -1);
+    return 0;
+}
+static char *test_missing_lparen(){
+    char str[] = "Da (dsd (d) ab)) a)d";
+    int parens;
+    char **array = tokenize(str,&parens);
+    mu_assert("Error - test_missing_lparen 1.0",parens == 2);
+    return 0;
+}
 static char *test_prepro1(){
     char str[] = "hello";
     char *pad = prepro(str);
@@ -113,8 +127,9 @@ static char *test_prepro15(){
     return 0;
 }
 static char *test_tokenize1(){
+    int parens;
     char str[] = "(()())";
-    char **a = tokenize(str);
+    char **a = tokenize(str,&parens);
     mu_assert("Error - tokenize1.0",!strcmp(*a,"("));
     a++;
     mu_assert("Error - tokenize1.1",!strcmp(*a,"("));
@@ -132,15 +147,17 @@ static char *test_tokenize1(){
     return 0;
 }
 static char *test_tokenize2(){
+    int parens;
     char str[] = "hi";
-    char **array = tokenize(str);
+    char **array = tokenize(str,&parens);
     mu_assert("Error - test_tokenize2.1",!strcmp(array[0],"hi"));
     mu_assert("Error - test_tokenize2.2",array[1] == 0);
     return 0;
 }
 static char *test_tokenize3(){
+    int parens;
     char str[] = "  (* 2 (+ x 7)) ";
-    char **a = tokenize(str);
+    char **a = tokenize(str,&parens);
     mu_assert("Error - tokenize3.0",!strcmp(*a,"("));
     a++;
     mu_assert("Error - tokenize3.1",!strcmp(*a,"*"));
@@ -164,16 +181,18 @@ static char *test_tokenize3(){
     return 0;
 }
 static char *test_parse1(){
+    int parens;
     char str[] = "hi bye";
-    char **array = tokenize(str);
+    char **array = tokenize(str,&parens);
     mu_assert("Error - test_parse1.1",!strcmp(*array,"hi"));
     mu_assert("Error - test_parse1.2",!strcmp(*(array+1),"bye"));
     Parser *p = parse(array);
     return 0;
 }
 static char *test_parse2(){
+    int parens;
     char str[] = "(hi bye)";
-    char **array = tokenize(str);
+    char **array = tokenize(str,&parens);
     Parser *p = parse(array);
     mu_assert("Error - test_parse2.1",p->cons->type == TYPE_LIST);
     Cell *list = p->cons->car;
@@ -183,7 +202,8 @@ static char *test_parse2(){
 }
 static char *test_parse3(){
     char str[] = "(spic (+ 2 3) span)";
-    char **array = tokenize(str);
+    int parens;
+    char **array = tokenize(str,&parens);
     Parser *p = parse(array);
     mu_assert("Error - test_parse3.1",p->cons->type == TYPE_LIST);
     Cell *list = p->cons->car;
@@ -258,7 +278,8 @@ Cell *is_atom(BST *bst, Cell *list){
 static char *test_eval1(){
     //char str[] = "(+ 2 (+ 5 7 3))";
     char str[] = "(+ (+ 2 (+ 5 7 3)) 10)";
-    char **array = tokenize(str);
+    int parens;
+    char **array = tokenize(str,&parens);
     Parser *p = parse(array);
     BST *bst = bst_new(mystrcmp);
     bst_insert(bst,"+",(void *)adder);
@@ -270,8 +291,9 @@ static char *test_eval1(){
     return 0;
 }
 static char *test_eval2(){
+    int parens;
     char str[] = "(atom 5)";
-    char **array = tokenize(str);
+    char **array = tokenize(str,&parens);
     Parser *p = parse(array);
     BST *bst = bst_new(mystrcmp);
     bst_insert(bst,"+",(void *)adder);
@@ -284,8 +306,9 @@ static char *test_eval2(){
     return 0;
 }
 static char *test_eval3(){
+    int parens;
     char str[] = "abc (+ 4 5) xyz)";
-    char **array = tokenize(str);
+    char **array = tokenize(str,&parens);
     Parser *p = parse(array);
     BST *bst = bst_new(mystrcmp);
     bst_insert(bst,"+",(void *)adder);
@@ -299,8 +322,9 @@ static char *test_eval3(){
     return 0;
 }
 static char *test_lambda1(){
+    int parens;
     char str[] = "((lambda () (+ 1 3)))";
-    char **array = tokenize(str);
+    char **array = tokenize(str,&parens);
     Parser *p = parse(array);
     BST *bst = bst_new(mystrcmp);
     bst_insert(bst,"+",(void *)adder);
@@ -310,8 +334,9 @@ static char *test_lambda1(){
     return 0;
 }
 static char *test_lambda2(){
+    int parens;
     char str[] = "(+ ((lambda () (+ 1 3)))  ((lambda () (+ 71 45))))";
-    char **array = tokenize(str);
+    char **array = tokenize(str,&parens);
     Parser *p = parse(array);
     BST *bst = bst_new(mystrcmp);
     bst_insert(bst,"+",(void *)adder);
@@ -322,8 +347,9 @@ static char *test_lambda2(){
 }
  
 static char *test_lambda3(){
+    int parens;
     char str[] = "(+ ((lambda () (+ 1 3)))  ((lambda () (+ 71 ((lambda () (+ 9 8)))))))";
-    char **array = tokenize(str);
+    char **array = tokenize(str,&parens);
     Parser *p = parse(array);
     BST *bst = bst_new(mystrcmp);
     bst_insert(bst,"+",(void *)adder);
@@ -334,6 +360,8 @@ static char *test_lambda3(){
 }
  
 char * all_tests() {
+    mu_run_test(test_missing_rparen);
+    mu_run_test(test_missing_lparen);
     mu_run_test(test_prepro1);
     mu_run_test(test_prepro2);
     mu_run_test(test_prepro3);
