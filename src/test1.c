@@ -5,6 +5,7 @@
 #include <tokenize.h>
 #include <bst.h>
 #include <eval.h>
+#include <environment.h>
 
 int tests_run = 0;
 int tests_error = 0;
@@ -256,7 +257,7 @@ static char *test_bst1(){
 }
 
 
-Cell *adder(BST *bst, Cell *list){
+Cell *adder(ENVIRONMENT *bst, Cell *list){
     long l = 0;
     while(list){
         l = l + (long)list->car;
@@ -265,7 +266,7 @@ Cell *adder(BST *bst, Cell *list){
     Cell *c = cons((void *)l,0,TYPE_INT);
     return c;
 }
-Cell *is_atom(BST *bst, Cell *list){
+Cell *is_atom(ENVIRONMENT environment, Cell *list){
     if(cons_len(list) != 1){
       Cell *c = cons(0,0,TYPE_NIL);
       return c;
@@ -281,10 +282,10 @@ static char *test_eval1(){
     int parens;
     char **array = tokenize(str,&parens);
     Parser *p = parse(array);
-    BST *bst = bst_new(mystrcmp);
-    bst_insert(bst,"+",(void *)adder);
-    bst_insert(bst,"atom",(void *)is_atom);
-    Cell *c = eval(bst,p->cons);
+    ENVIRONMENT environment = environment_new(0);
+    environment_add(environment,"+",cons(adder,0,TYPE_NATIVE));
+    environment_add(environment,"atom",cons(is_atom,0,TYPE_NATIVE));
+    Cell *c = eval(environment,p->cons);
     mu_assert("Error - eval1.1 ",c != 0);
     mu_assert("Error - eval1.2 ",c -> cdr == 0);
     mu_assert("Error - eval1.3 ",(long) c -> car == 27);
@@ -295,10 +296,10 @@ static char *test_eval2(){
     char str[] = "(atom 5)";
     char **array = tokenize(str,&parens);
     Parser *p = parse(array);
-    BST *bst = bst_new(mystrcmp);
-    bst_insert(bst,"+",(void *)adder);
-    bst_insert(bst,"atom",(void *)is_atom);
-    Cell *c = eval(bst,p->cons);
+    ENVIRONMENT environment = environment_new(0);
+    environment_add(environment,"+",cons(adder,0,TYPE_NATIVE));
+    environment_add(environment,"atom",cons(is_atom,0,TYPE_NATIVE));
+    Cell *c = eval(environment,p->cons);
     mu_assert("Error - eval2.1 ",c != 0);
     mu_assert("Error - eval2.2 ",c -> cdr == 0);
     mu_assert("Error - eval2.3 ",c -> car == 0);
@@ -310,10 +311,10 @@ static char *test_eval3(){
     char str[] = "abc (+ 4 5) xyz)";
     char **array = tokenize(str,&parens);
     Parser *p = parse(array);
-    BST *bst = bst_new(mystrcmp);
-    bst_insert(bst,"+",(void *)adder);
-    bst_insert(bst,"atom",(void *)is_atom);
-    Cell *c = eval(bst,p->cons);
+    ENVIRONMENT environment = environment_new(0);
+    environment_add(environment,"+",cons(adder,0,TYPE_NATIVE));
+    environment_add(environment,"atom",cons(is_atom,0,TYPE_NATIVE));
+    Cell *c = eval(environment,p->cons);
     mu_assert("Error - eval3.1 ",c != 0);
     mu_assert("Error - eval3.2 ",c->cdr->cdr->cdr == 0);
     mu_assert("Error - eval3.3 ",!strcmp(c->car,"abc"));
@@ -326,10 +327,10 @@ static char *test_lambda1(){
     char str[] = "((lambda () (+ 1 3)))";
     char **array = tokenize(str,&parens);
     Parser *p = parse(array);
-    BST *bst = bst_new(mystrcmp);
-    bst_insert(bst,"+",(void *)adder);
-    bst_insert(bst,"atom",(void *)is_atom);
-    Cell *c = eval(bst,p->cons);
+    ENVIRONMENT environment = environment_new(0);
+    environment_add(environment,"+",cons(adder,0,TYPE_NATIVE));
+    environment_add(environment,"atom",cons(is_atom,0,TYPE_NATIVE));
+    Cell *c = eval(environment,p->cons);
     mu_assert("Error - lambda1.1 ",(long)c->car == 4);
     return 0;
 }
@@ -338,10 +339,10 @@ static char *test_lambda2(){
     char str[] = "(+ ((lambda () (+ 1 3)))  ((lambda () (+ 71 45))))";
     char **array = tokenize(str,&parens);
     Parser *p = parse(array);
-    BST *bst = bst_new(mystrcmp);
-    bst_insert(bst,"+",(void *)adder);
-    bst_insert(bst,"atom",(void *)is_atom);
-    Cell *c = eval(bst,p->cons);
+    ENVIRONMENT environment = environment_new(0);
+    environment_add(environment,"+",cons(adder,0,TYPE_NATIVE));
+    environment_add(environment,"atom",cons(is_atom,0,TYPE_NATIVE));
+    Cell *c = eval(environment,p->cons);
     mu_assert("Error - lambda2.1 ",(long)c->car == 120);
     return 0;
 }
@@ -351,11 +352,28 @@ static char *test_lambda3(){
     char str[] = "(+ ((lambda () (+ 1 3)))  ((lambda () (+ 71 ((lambda () (+ 9 8)))))))";
     char **array = tokenize(str,&parens);
     Parser *p = parse(array);
-    BST *bst = bst_new(mystrcmp);
-    bst_insert(bst,"+",(void *)adder);
-    bst_insert(bst,"atom",(void *)is_atom);
-    Cell *c = eval(bst,p->cons);
+    ENVIRONMENT environment = environment_new(0);
+    environment_add(environment,"+",cons(adder,0,TYPE_NATIVE));
+    environment_add(environment,"atom",cons(is_atom,0,TYPE_NATIVE));
+    Cell *c = eval(environment,p->cons);
     mu_assert("Error - lambda3.1 ",(long)c->car == 92);
+    return 0;
+}
+static char *test_environment(){
+    ENVIRONMENT environment1 = environment_new(0);
+    ENVIRONMENT environment2 = environment_new(environment1);
+    environment_add(environment1,"a","b");
+    environment_add(environment1,"c","d");
+
+    void *value = environment_search(environment1,"a");
+    mu_assert("Error - test_environment1.0 ",!strcmp((char*)value,"b"));
+    value = environment_search(environment2,"a");
+    mu_assert("Error - test_environment1.1 ",!strcmp((char*)value,"b"));
+    value = environment_search(environment2,"d");
+    mu_assert("Error - test_environment1.2 ",value == 0);
+    value = environment_search(environment1,"d");
+    mu_assert("Error - test_environment1.3 ",value == 0);
+
     return 0;
 }
  
@@ -386,6 +404,7 @@ char * all_tests() {
     mu_run_test(test_eval1);
     mu_run_test(test_eval2);
     mu_run_test(test_eval3);
+    mu_run_test(test_environment);
     mu_run_test(test_lambda1);
     mu_run_test(test_lambda2);
     mu_run_test(test_lambda3);

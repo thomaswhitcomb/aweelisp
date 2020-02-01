@@ -3,19 +3,18 @@
 #include <cons.h>
 #include <eval.h>
 #include <bst.h>
+#include <environment.h>
 
-Cell *eval(BST *envir,Cell *c){
+Cell *eval(ENVIRONMENT envir,Cell *c){
     if (c == 0){
         return c;
     }
     Cell *curr, *prev = 0, *root = 0;
     while(c){
         if(c->type == TYPE_SYMBOL){
-            curr = bst_search(envir,c->car);
+            curr = environment_search(envir,c->car);
             if(curr == 0){
                 curr = cons(c->car,0,TYPE_SYMBOL);
-            }else{
-                curr = cons(curr,0,TYPE_NATIVE);
             }
         }
         if(c->type == TYPE_INT){
