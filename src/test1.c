@@ -380,6 +380,17 @@ static char *test_lambda4(){
     cons_print(c);
     return 0;
 }
+static char *test_lambda5(){
+    int parens;
+    char str[] = "((lambda (a b c) (+ a b c)) 1 2 3 )";
+    char **array = tokenize(str,&parens);
+    Parser *p = parse(array);
+    ENVIRONMENT environment = environment_new(0);
+    environment_add(environment,"+",cons(adder,0,TYPE_NATIVE));
+    Cell *c = eval(environment,p->cons);
+    cons_print(c);
+    return 0;
+}
 static char *test_def1(){
     int parens;
     char str[] = "(def five 5) five";
@@ -461,6 +472,7 @@ char * all_tests() {
     mu_run_test(test_lambda2);
     mu_run_test(test_lambda3);
     mu_run_test(test_lambda4);
+    mu_run_test(test_lambda5);
     mu_run_test(test_def1);
     mu_run_test(test_def2);
     if (tests_error != 0) {

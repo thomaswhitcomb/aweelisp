@@ -31,14 +31,24 @@ Cell *eval(ENVIRONMENT envir,Cell *c){
         if(c->type == TYPE_LIST){
             Cell *list = (Cell *)c->car;
             Cell *ret = eval(envir,c->car);
-            Cell *parms = eval(envir,list->cdr);
+            Cell *actual_params = eval(envir,list->cdr);
             if(ret->type == TYPE_NATIVE){
-                curr = ((LAMBDA)ret->car)(envir,parms);
+                curr = ((LAMBDA)ret->car)(envir,actual_params);
             }else{
                 if (ret->type == TYPE_LAMBDA){
                     printf("executing: ");
                     cons_print(ret);
-                    curr = eval(envir,((Cell *)ret->car)->cdr);
+                    Cell *formal_params = ret->car; //PARAMETER LIST
+                    Cell *code = ((Cell *)ret->car)->cdr;
+                    Cell *formal_param_name = formal_params->car;
+                    ENVIRONMENT envir1 = environment_new(envir);
+                    while(formal_param_name){
+                        printf("param is: %s\n",formal_param_name->car);
+                        environment_add(envir1,formal_param_name->car,actual_params);
+                        actual_params = actual_params->cdr;
+                        formal_param_name = formal_param_name->cdr;
+                    }
+                    curr = eval(envir1,code);
                 }else{
                     printf("yikes - invalid functor: %i\n",ret->type);
                 }
