@@ -266,6 +266,16 @@ Cell *adder(ENVIRONMENT *bst, Cell *list){
     Cell *c = cons((void *)l,0,TYPE_INT);
     return c;
 }
+Cell *def(ENVIRONMENT envir, Cell *list){
+    Cell *c;
+    if(list->type == TYPE_SYMBOL){
+        environment_add(envir,list->car,list->cdr);
+        c = cons(0,0,TYPE_TRUE);
+    } else{
+        c = cons(0,0,TYPE_NIL);
+    }
+    return c;
+}
 Cell *is_atom(ENVIRONMENT environment, Cell *list){
     if(cons_len(list) != 1){
       Cell *c = cons(0,0,TYPE_NIL);
@@ -359,6 +369,48 @@ static char *test_lambda3(){
     mu_assert("Error - lambda3.1 ",(long)c->car == 92);
     return 0;
 }
+static char *test_lambda4(){
+    int parens;
+    char str[] = "((lambda () 255))";
+    char **array = tokenize(str,&parens);
+    Parser *p = parse(array);
+    ENVIRONMENT environment = environment_new(0);
+    Cell *c = eval(environment,p->cons);
+    mu_assert("Error - lambda4.0 ",(long)c->car == 255);
+    cons_print(c);
+    return 0;
+}
+static char *test_def1(){
+    int parens;
+    char str[] = "(def five 5) five";
+    char **array = tokenize(str,&parens);
+    Parser *p = parse(array);
+    ENVIRONMENT environment = environment_new(0);
+    environment_add(environment,"+",cons(adder,0,TYPE_NATIVE));
+    environment_add(environment,"def",cons(def,0,TYPE_NATIVE));
+    environment_add(environment,"atom",cons(is_atom,0,TYPE_NATIVE));
+    Cell *c = eval(environment,p->cons);
+    mu_assert("Error - def1.0 ",c->type == TYPE_TRUE);
+    mu_assert("Error - def1.1 ",c->cdr->type == TYPE_INT);
+    mu_assert("Error - def1.2 ",(long)c->cdr->car == 5);
+    return 0;
+}
+static char *test_def2(){
+    int parens;
+    char str[] = "(def five (lambda () (+ 2 3))) (five)";
+    char **array = tokenize(str,&parens);
+    Parser *p = parse(array);
+    ENVIRONMENT environment = environment_new(0);
+    environment_add(environment,"+",cons(adder,0,TYPE_NATIVE));
+    environment_add(environment,"def",cons(def,0,TYPE_NATIVE));
+    environment_add(environment,"atom",cons(is_atom,0,TYPE_NATIVE));
+    Cell *c = eval(environment,p->cons);
+    mu_assert("Error - def2.0 ",c->type == TYPE_TRUE);
+    mu_assert("Error - def2.1 ",c->cdr->type == TYPE_INT);
+    mu_assert("Error - def2.2 ",(long)c->cdr->car == 5);
+    cons_print(c);
+    return 0;
+}
 static char *test_environment(){
     ENVIRONMENT environment1 = environment_new(0);
     ENVIRONMENT environment2 = environment_new(environment1);
@@ -408,6 +460,9 @@ char * all_tests() {
     mu_run_test(test_lambda1);
     mu_run_test(test_lambda2);
     mu_run_test(test_lambda3);
+    mu_run_test(test_lambda4);
+    mu_run_test(test_def1);
+    mu_run_test(test_def2);
     if (tests_error != 0) {
         printf("%d errors.\n", tests_error);
     } else {
