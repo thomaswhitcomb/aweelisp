@@ -12,7 +12,7 @@ Cell *eval_main(char *str){
     int parens = 0;
     char **array = tokenize(str,&parens);
     Parser *p = parse(array);
-    ENVIRONMENT environment = environment_new(0);
+    ENVIRONMENT *environment = environment_new(0);
     environment_add(environment,"+",cons(adder,0,TYPE_NATIVE));
     environment_add(environment,"def",cons(def,0,TYPE_NATIVE));
     environment_add(environment,"atom",cons(is_atom,0,TYPE_NATIVE));
@@ -21,8 +21,6 @@ Cell *eval_main(char *str){
     while(cons){
         Cell *c = eval(environment,cons);
         cons = cons->cdr;
-        printf("$ ");
-        cons_print(c);
         if(result == 0){
             result = c;
         }else{
@@ -33,7 +31,7 @@ Cell *eval_main(char *str){
     }
     return result;
 }
-Cell *eval(ENVIRONMENT envir,Cell *c){
+Cell *eval(ENVIRONMENT *envir,Cell *c){
     if (c == 0){
         return c;
     }
@@ -68,6 +66,7 @@ Cell *eval(ENVIRONMENT envir,Cell *c){
         Cell *actual_params = p;
         Cell *pv;
         Cell *prev = 0;
+        ENVIRONMENT *child;
         while(p && strcmp(functor->car,"def")){
           pv = eval(envir,p);
           if(prev != 0) prev->cdr = pv;
@@ -83,19 +82,22 @@ Cell *eval(ENVIRONMENT envir,Cell *c){
             if (functor->type == TYPE_LAMBDA){
                 //printf("executing: ");
                 //cons_print(functor);
-//              ENVIRONMENT envir1 = environment_new(envir);
                 Cell *formal_params = functor->car; //PARAMETER LIST
                 Cell *code = ((Cell *)functor->car)->cdr;
                 Cell *formal_param_name = formal_params->car;
+                child = environment_child(envir);
+                if(!child){
+                    child = environment_new(envir);
+                }
                 while(formal_param_name){
                     Cell *p = cons(actual_params->car,0,actual_params->type);
-                    environment_add(envir,formal_param_name->car,p);
+                    environment_add(child,formal_param_name->car,p);
                     //printf("adding environment var: %s has ",(char*)formal_param_name->car);
                     //cons_print(p);
                     actual_params = actual_params->cdr;
                     formal_param_name = formal_param_name->cdr;
                 }
-                curr = eval(envir,code);
+                curr = eval(child,code);
             }else{
                 printf("yikes - invalid functor: %i\n",functor->type);
                 curr = cons(0,0,TYPE_NIL);

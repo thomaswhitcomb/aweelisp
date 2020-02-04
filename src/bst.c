@@ -46,6 +46,8 @@ Node *bst_insert1(BST *bst,Node *tree, void *key,void *value){
     }else if (bst->compare_fn(key,tree->key) > 0){
         tree->right = bst_insert1(bst,tree->right,key,value);
         tree->right->parent = tree;
+    }else if (bst->compare_fn(key,tree->key) == 0){
+        tree->value = value;
     }
     return tree;
 }

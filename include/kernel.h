@@ -4,7 +4,7 @@
 #include<cons.h>
 #include<kernel.h>
 
-Cell *adder(ENVIRONMENT *bst, Cell *list);
-Cell *def(ENVIRONMENT envir, Cell *list);
-Cell *is_atom(ENVIRONMENT environment, Cell *list);
+Cell *adder(ENVIRONMENT *envir, Cell *list);
+Cell *def(ENVIRONMENT *envir, Cell *list);
+Cell *is_atom(ENVIRONMENT *environment, Cell *list);
 #endif

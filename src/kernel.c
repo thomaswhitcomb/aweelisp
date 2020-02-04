@@ -1,7 +1,7 @@
 #include<stdlib.h>
 #include<stdio.h>
 #include<kernel.h>
-Cell *adder(ENVIRONMENT *bst, Cell *list){
+Cell *adder(ENVIRONMENT *envir, Cell *list){
     long l = 0;
     while(list){
         l = l + (long)list->car;
@@ -10,7 +10,7 @@ Cell *adder(ENVIRONMENT *bst, Cell *list){
     Cell *c = cons((void *)l,0,TYPE_INT);
     return c;
 }
-Cell *def(ENVIRONMENT envir, Cell *list){
+Cell *def(ENVIRONMENT *envir, Cell *list){
     Cell *c;
     if(list->type == TYPE_SYMBOL){
         environment_add(envir,list->car,list->cdr);
@@ -20,7 +20,7 @@ Cell *def(ENVIRONMENT envir, Cell *list){
     }
     return c;
 }
-Cell *is_atom(ENVIRONMENT environment, Cell *list){
+Cell *is_atom(ENVIRONMENT *environment, Cell *list){
     if(cons_len(list) != 1){
       Cell *c = cons(0,0,TYPE_NIL);
       return c;

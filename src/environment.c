@@ -6,16 +6,18 @@
 static int mystrcmp (void *p1,void*p2){
       return strcmp((char *)p1,(char *)p2);
 }
-ENVIRONMENT environment_new(ENVIRONMENT parent){
-    ENVIRONMENT e = malloc(sizeof(ENVIRONMENT));
+ENVIRONMENT *environment_new(ENVIRONMENT *parent){
+    ENVIRONMENT *e = (ENVIRONMENT *)malloc(sizeof(ENVIRONMENT));
     e->parent = parent;
+    if(parent) parent->child = e;
+    e->child = 0;
     e->bst = bst_new(mystrcmp);
     return e;
 }
-void environment_add(ENVIRONMENT envir,void *key,void *value){
+void environment_add(ENVIRONMENT *envir,void *key,void *value){
     bst_insert(envir->bst,key,value);
 }
-void environment_print(ENVIRONMENT envir){
+void environment_print(ENVIRONMENT *envir){
     int i=0;
     while(envir){
       printf("environment print level %i\n",i);
@@ -24,12 +26,18 @@ void environment_print(ENVIRONMENT envir){
       i++;
     }
 }
-void* environment_search(ENVIRONMENT envir,void *key){
+void* environment_search(ENVIRONMENT *envir,void *key){
     void *value = 0;
     while(envir && !value){
         value = bst_search(envir->bst,key);
         envir = envir->parent;
     }
     return value;
+}
+ENVIRONMENT *environment_child(ENVIRONMENT *envir){
+    return envir->child;
+}
+ENVIRONMENT *environment_parent(ENVIRONMENT *envir){
+    return envir->parent;
 }
 
