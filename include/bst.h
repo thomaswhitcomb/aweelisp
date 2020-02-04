@@ -22,6 +22,7 @@ typedef struct bst BST;
 BST *bst_new(BST_CMP_FN);
 void *bst_search(BST *bst,void *key);
 Node *bst_insert(BST *bst,void *key, void* value);
+void bst_print(BST *bst);
 
 #endif
 

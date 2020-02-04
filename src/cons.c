@@ -27,32 +27,34 @@ int cons_len(Cell *cons){
     return i;
 }
 void cons_print_(Cell *cons){
-    while(cons){
-        if (cons->type == TYPE_SYMBOL){
-          printf(" %s ",(char*)cons->car);
-        }
-        if (cons->type == TYPE_INT){
-          printf(" %ld ",(long)cons->car);
-        }
-        if (cons->type == TYPE_NIL){
-          printf(" nil ");
-        }
-        if (cons->type == TYPE_TRUE){
-          printf(" #t ");
-        }
-        if (cons->type == TYPE_NATIVE){
-          printf(" @native@ ");
-        }
-        if (cons->type == TYPE_LAMBDA){
-            printf("{");
-            cons_print_(cons->car);
-            printf("}");
-        }
-        if(cons->type == TYPE_LIST){
-            printf("(");
-            cons_print_(cons->car);
-            printf(")");
-        }   
-        cons = cons->cdr;
+    if (cons->type == TYPE_SYMBOL){
+      printf(" %s ",(char*)cons->car);
     }
+    if (cons->type == TYPE_INT){
+      printf(" %ld ",(long)cons->car);
+    }
+    if (cons->type == TYPE_NIL){
+      printf(" nil ");
+    }
+    if (cons->type == TYPE_TRUE){
+      printf(" #t ");
+    }
+    if (cons->type == TYPE_NATIVE){
+      printf(" @native@ ");
+    }
+    if (cons->type == TYPE_LAMBDA){
+        printf("{");
+        cons_print_(cons->car);
+        cons_print_(((Cell *)(cons->car))->cdr);
+        printf("}");
+    }
+    if(cons->type == TYPE_LIST){
+        printf("(");
+        Cell *cc = cons->car;
+        while(cc){
+          cons_print_(cc);
+          cc = cc->cdr;
+        }
+        printf(")");
+    }   
 }

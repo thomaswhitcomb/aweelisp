@@ -14,6 +14,7 @@ ENVIRONMENT environment_new(ENVIRONMENT parent);
 ENVIRONMENT environment_parent(ENVIRONMENT environment);
 void environment_add(ENVIRONMENT environment,void *key,void *value);
 void *environment_search(ENVIRONMENT environment,void *key);
+void environment_print(ENVIRONMENT environment);
 
 #endif
 

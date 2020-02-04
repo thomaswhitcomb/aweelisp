@@ -15,6 +15,15 @@ ENVIRONMENT environment_new(ENVIRONMENT parent){
 void environment_add(ENVIRONMENT envir,void *key,void *value){
     bst_insert(envir->bst,key,value);
 }
+void environment_print(ENVIRONMENT envir){
+    int i=0;
+    while(envir){
+      printf("environment print level %i\n",i);
+      bst_print(envir->bst);
+      envir = envir->parent;
+      i++;
+    }
+}
 void* environment_search(ENVIRONMENT envir,void *key){
     void *value = 0;
     while(envir && !value){

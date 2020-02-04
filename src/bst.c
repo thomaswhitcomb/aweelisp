@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <bst.h>
+#include <cons.h>
 
 
 Node *root = 0;
@@ -11,7 +12,22 @@ BST *bst_new(BST_CMP_FN fn){
     bst->compare_fn = fn;
     return bst;
 }
-
+void bst_print1(BST *bst,Node *tree,int level){
+  if(!tree ){
+    return;
+  }
+  bst_print1(bst,tree->right,level+1);
+  for(int i=0;i<(level *6);i++){
+      printf(".");
+  }    
+  printf("%s ",tree->key);
+  cons_print(tree->value);
+  printf("\n");
+  bst_print1(bst,tree->left,level+1);
+}
+void bst_print(BST *bst){
+    bst_print1(bst,bst->root,0);
+}
 Node *bst_insert1(BST *bst,Node *tree, void *key,void *value){
     if(tree == 0){
         Node *n = malloc(sizeof(Node));

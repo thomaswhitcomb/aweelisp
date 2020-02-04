@@ -6,6 +6,7 @@
 #include <bst.h>
 #include <eval.h>
 #include <environment.h>
+#include <kernel.h>
 
 int tests_run = 0;
 int tests_error = 0;
@@ -256,36 +257,6 @@ static char *test_bst1(){
     return 0;
 }
 
-
-Cell *adder(ENVIRONMENT *bst, Cell *list){
-    long l = 0;
-    while(list){
-        l = l + (long)list->car;
-        list = list->cdr;
-    }
-    Cell *c = cons((void *)l,0,TYPE_INT);
-    return c;
-}
-Cell *def(ENVIRONMENT envir, Cell *list){
-    Cell *c;
-    if(list->type == TYPE_SYMBOL){
-        environment_add(envir,list->car,list->cdr);
-        c = cons(0,0,TYPE_TRUE);
-    } else{
-        c = cons(0,0,TYPE_NIL);
-    }
-    return c;
-}
-Cell *is_atom(ENVIRONMENT environment, Cell *list){
-    if(cons_len(list) != 1){
-      Cell *c = cons(0,0,TYPE_NIL);
-      return c;
-    }
-    Cell *c = cons(0,0,TYPE_TRUE);
-    if(c->type == TYPE_LIST) c->type = TYPE_NIL;
-    return c;
-}
-
 static char *test_eval1(){
     //char str[] = "(+ 2 (+ 5 7 3))";
     char str[] = "(+ (+ 2 (+ 5 7 3)) 10)";
@@ -317,18 +288,12 @@ static char *test_eval2(){
     return 0;
 }
 static char *test_eval3(){
-    int parens;
     char str[] = "abc (+ 4 5) xyz)";
-    char **array = tokenize(str,&parens);
-    Parser *p = parse(array);
-    ENVIRONMENT environment = environment_new(0);
-    environment_add(environment,"+",cons(adder,0,TYPE_NATIVE));
-    environment_add(environment,"atom",cons(is_atom,0,TYPE_NATIVE));
-    Cell *c = eval(environment,p->cons);
+    Cell *c = eval_main(str);
+    cons_print(c);
     mu_assert("Error - eval3.1 ",c != 0);
-    mu_assert("Error - eval3.2 ",c->cdr->cdr->cdr == 0);
-    mu_assert("Error - eval3.3 ",!strcmp(c->car,"abc"));
-    mu_assert("Error - eval3.4 ",(long)c->cdr->car == 9);
+    mu_assert("Error - eval3.2 ",!strcmp(c->car,"abc"));
+    mu_assert("Error - eval3.3 ",(long)c->cdr->car == 9);
     mu_assert("Error - eval3.3 ",!strcmp(c->cdr->cdr->car,"xyz"));
     return 0;
 }
@@ -391,31 +356,28 @@ static char *test_lambda5(){
     cons_print(c);
     return 0;
 }
+static char *test_lambda6(){
+    char str[] = "(def add (lambda (x y) (+ x y))) (add 56 7)";
+    eval_main(str);
+    return 0;
+}
+static char *test_lambda7(){
+    char str[] = "(def cons (lambda (x y) (lambda (m) (m x y)))) (def car (lambda (z) (z (lambda (p q) p)))) (car (cons 99 202))"; 
+    eval_main(str);
+    return 0;
+}
 static char *test_def1(){
     int parens;
     char str[] = "(def five 5) five";
-    char **array = tokenize(str,&parens);
-    Parser *p = parse(array);
-    ENVIRONMENT environment = environment_new(0);
-    environment_add(environment,"+",cons(adder,0,TYPE_NATIVE));
-    environment_add(environment,"def",cons(def,0,TYPE_NATIVE));
-    environment_add(environment,"atom",cons(is_atom,0,TYPE_NATIVE));
-    Cell *c = eval(environment,p->cons);
+    Cell *c = eval_main(str);
     mu_assert("Error - def1.0 ",c->type == TYPE_TRUE);
     mu_assert("Error - def1.1 ",c->cdr->type == TYPE_INT);
     mu_assert("Error - def1.2 ",(long)c->cdr->car == 5);
     return 0;
 }
 static char *test_def2(){
-    int parens;
     char str[] = "(def five (lambda () (+ 2 3))) (five)";
-    char **array = tokenize(str,&parens);
-    Parser *p = parse(array);
-    ENVIRONMENT environment = environment_new(0);
-    environment_add(environment,"+",cons(adder,0,TYPE_NATIVE));
-    environment_add(environment,"def",cons(def,0,TYPE_NATIVE));
-    environment_add(environment,"atom",cons(is_atom,0,TYPE_NATIVE));
-    Cell *c = eval(environment,p->cons);
+    Cell *c = eval_main(str);
     mu_assert("Error - def2.0 ",c->type == TYPE_TRUE);
     mu_assert("Error - def2.1 ",c->cdr->type == TYPE_INT);
     mu_assert("Error - def2.2 ",(long)c->cdr->car == 5);
@@ -468,13 +430,15 @@ char * all_tests() {
     mu_run_test(test_eval2);
     mu_run_test(test_eval3);
     mu_run_test(test_environment);
+    mu_run_test(test_def1);
+    mu_run_test(test_def2);
     mu_run_test(test_lambda1);
     mu_run_test(test_lambda2);
     mu_run_test(test_lambda3);
     mu_run_test(test_lambda4);
     mu_run_test(test_lambda5);
-    mu_run_test(test_def1);
-    mu_run_test(test_def2);
+    mu_run_test(test_lambda6);
+    mu_run_test(test_lambda7);
     if (tests_error != 0) {
         printf("%d errors.\n", tests_error);
     } else {

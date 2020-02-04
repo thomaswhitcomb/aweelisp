@@ -7,4 +7,5 @@
 typedef Cell * (*LAMBDA)(ENVIRONMENT envir, Cell *cons);
 //P R O T O T Y P E S
 Cell *eval(ENVIRONMENT environment,Cell *cons);
+Cell *eval_main(char* str);
 #endif
