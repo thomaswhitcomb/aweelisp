@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <minunit.h>
-#include <cons.h>
+#include <cell.h>
 #include <native.h>
 
 int main(int intc, char **argv){

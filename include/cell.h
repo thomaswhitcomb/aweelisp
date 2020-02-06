@@ -10,20 +10,20 @@
 #define TYPE_LAMBDA  6
 #define TYPE_NATIVE  7
 
-#define cons_print(cons) do {cons_print_(cons);printf("\n");} while(0)
+#define cell_print(cons) do {cell_print_(cons);printf("\n");} while(0)
 
 struct cell {
-    void *car;
-    struct cell *cdr;
+    struct cell *next;
+    void *datum;
     short type;
 };
 
 typedef struct cell Cell;
 
 //P R O T O T Y P E S
-Cell *cons(void *car, void *cdr,short type);
-void *car(Cell *cons);
-void *cdr(Cell *cons);
-void cons_print_(Cell *cons);
-int cons_len(Cell *cons);
+Cell *cell_new(void *datum, void *next,short type);
+Cell *cell_clone(Cell *cell);
+int cell_equal(Cell *cell1, Cell *cell2);
+void cell_print_(Cell *cell);
+int cell_len(Cell *cell);
 #endif

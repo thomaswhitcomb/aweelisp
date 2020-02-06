@@ -1,6 +1,6 @@
 #ifndef __EVAL_H_INCLUDED__   
 #define __EVAL_H_INCLUDED__
-#include <cons.h>
+#include <cell.h>
 #include <environment.h>
 
 typedef Cell * (*LAMBDA)(ENVIRONMENT *envir, Cell *cons);

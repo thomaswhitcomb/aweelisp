@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <bst.h>
-#include <cons.h>
+#include <cell.h>
 
 
 Node *root = 0;
@@ -21,7 +21,7 @@ void bst_print1(BST *bst,Node *tree,int level){
       printf(".");
   }    
   printf("%s ",tree->key);
-  cons_print(tree->value);
+  cell_print(tree->value);
   printf("\n");
   bst_print1(bst,tree->left,level+1);
 }

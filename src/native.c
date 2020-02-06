@@ -2,7 +2,7 @@
 #include<stdio.h>
 #include<native.h>
 #include<bst.h>
-#include<cons.h>
+#include<cell.h>
 #include<string.h>
 #include<eval.h>
 
@@ -14,9 +14,11 @@ static int mystrcmp (void *p1,void*p2){
 static Cell *is_atom(ENVIRONMENT *environment, Cell *list);
 static Cell *def(ENVIRONMENT *envir, Cell *list);
 static Cell *adder(ENVIRONMENT *envir, Cell *list);
+static Cell *quote(ENVIRONMENT *envir, Cell *list);
+static Cell *cons(ENVIRONMENT *envir, Cell *list);
 
 static Cell *native_alloc(void *func,int eval_params){
-    return cons((void *)((unsigned long)func | eval_params),0,TYPE_NATIVE);
+    return cell_new((void *)((unsigned long)func | eval_params),0,TYPE_NATIVE);
 }
 
 void native_initialize(){
@@ -24,6 +26,8 @@ void native_initialize(){
     bst_insert(dictionary,"+",native_alloc(adder,1));
     bst_insert(dictionary,"def",native_alloc(def,0));
     bst_insert(dictionary,"atom",native_alloc(is_atom,1));
+    bst_insert(dictionary,"quote",native_alloc(quote,0));
+    bst_insert(dictionary,"cons",native_alloc(cons,1));
 }
 int native_eval_params(LAMBDA lambda){
     return ((unsigned long)lambda & 1);
@@ -40,28 +44,48 @@ Cell *native_fetch(char *name){
 static Cell *adder(ENVIRONMENT *envir, Cell *list){
     long l = 0;
     while(list){
-        l = l + (long)list->car;
-        list = list->cdr;
+        l = l + (long)list->datum;
+        list = list->next;
     }
-    Cell *c = cons((void *)l,0,TYPE_INT);
+    Cell *c = cell_new((void *)l,0,TYPE_INT);
     return c;
 }
 static Cell *def(ENVIRONMENT *envir, Cell *list){
     Cell *c;
     if(list->type == TYPE_SYMBOL){
-        environment_add(envir,list->car,list->cdr);
-        c = cons(0,0,TYPE_TRUE);
+        environment_add(envir,list->datum,list->next);
+        c = cell_new(0,0,TYPE_TRUE);
     } else{
-        c = cons(0,0,TYPE_NIL);
+        c = cell_new(0,0,TYPE_NIL);
     }
     return c;
 }
 static Cell *is_atom(ENVIRONMENT *environment, Cell *list){
-    if(cons_len(list) != 1){
-      Cell *c = cons(0,0,TYPE_NIL);
-      return c;
+    if(cell_len(list) != 1){
+        Cell *c = cell_new(0,0,TYPE_NIL);
+        return c;
     }
-    Cell *c = cons(0,0,TYPE_TRUE);
+    Cell *c = cell_new(0,0,TYPE_TRUE);
     if(c->type == TYPE_LIST) c->type = TYPE_NIL;
     return c;
+}
+static Cell *quote(ENVIRONMENT *environment, Cell *list){
+    if(cell_len(list) == 0){
+        return cell_new(0,0,TYPE_NIL);
+    }
+    return list;
+}
+static Cell *cons(ENVIRONMENT *environment, Cell *list){
+    if(cell_len(list) != 2){
+        return cell_new(0,0,TYPE_NIL);
+    }
+    if(list->next->type != TYPE_LIST){
+        return cell_new(0,0,TYPE_NIL);
+    }
+    //cell_print((Cell *)list->next->datum);
+    Cell *clone = cell_clone(list);
+    Cell *clone_next = clone->next;
+    clone->next = clone_next->datum;
+    Cell *n = cell_new(clone,0,TYPE_LIST);
+    return n;
 }

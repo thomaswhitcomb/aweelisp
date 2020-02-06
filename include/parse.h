@@ -1,9 +1,9 @@
 #ifndef __PARSE_H_INCLUDED__
 #define __PARSE_H_INCLUDED__
-#include <cons.h>
+#include <cell.h>
 
 struct parser {
-    Cell *cons;
+    Cell *cell;
     char **next;
 };
 

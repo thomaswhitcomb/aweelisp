@@ -196,10 +196,10 @@ static char *test_parse2(){
     char str[] = "(hi bye)";
     char **array = tokenize(str,&parens);
     Parser *p = parse(array);
-    mu_assert("Error - test_parse2.1",p->cons->type == TYPE_LIST);
-    Cell *list = p->cons->car;
-    mu_assert("Error - test_parse2.2",!strcmp(list->car,"hi"));
-    mu_assert("Error - test_parse2.3",!strcmp(list->cdr->car,"bye"));
+    mu_assert("Error - test_parse2.1",p->cell->type == TYPE_LIST);
+    Cell *list = p->cell->datum;
+    mu_assert("Error - test_parse2.2",!strcmp(list->datum,"hi"));
+    mu_assert("Error - test_parse2.3",!strcmp(list->next->datum,"bye"));
     return 0;
 }
 static char *test_parse3(){
@@ -207,17 +207,17 @@ static char *test_parse3(){
     int parens;
     char **array = tokenize(str,&parens);
     Parser *p = parse(array);
-    mu_assert("Error - test_parse3.1",p->cons->type == TYPE_LIST);
-    Cell *list = p->cons->car;
-    mu_assert("Error - test_parse3.2",!strcmp(list->car,"spic"));
-    mu_assert("Error - test_parse3.3",list->cdr->type == TYPE_LIST);
-    mu_assert("Error - test_parse3.4",list->cdr->cdr->type == TYPE_SYMBOL);
-    mu_assert("Error - test_parse3.5",!strcmp(list->cdr->cdr->car,"span"));
-    list = (Cell *)list->cdr->car;
-    mu_assert("Error - test_parse3.6",!strcmp(list->car,"+"));
-    mu_assert("Error - test_parse3.7",(long) list->cdr->car == 2);
-    mu_assert("Error - test_parse3.8",(long) list->cdr->cdr->car == 3);
-    mu_assert("Error - test_parse3.9",list->cdr->cdr->cdr == 0);
+    mu_assert("Error - test_parse3.1",p->cell->type == TYPE_LIST);
+    Cell *list = p->cell->datum;
+    mu_assert("Error - test_parse3.2",!strcmp(list->datum,"spic"));
+    mu_assert("Error - test_parse3.3",list->next->type == TYPE_LIST);
+    mu_assert("Error - test_parse3.4",list->next->next->type == TYPE_SYMBOL);
+    mu_assert("Error - test_parse3.5",!strcmp(list->next->next->datum,"span"));
+    list = (Cell *)list->next->datum;
+    mu_assert("Error - test_parse3.6",!strcmp(list->datum,"+"));
+    mu_assert("Error - test_parse3.7",(long) list->next->datum == 2);
+    mu_assert("Error - test_parse3.8",(long) list->next->next->datum == 3);
+    mu_assert("Error - test_parse3.9",list->next->next->next == 0);
     return 0;
 }
 static int myintcmp (void *p1,void*p2){
@@ -274,10 +274,10 @@ static char *test_eval1(){
     char **array = tokenize(str,&parens);
     Parser *p = parse(array);
     ENVIRONMENT *environment = environment_new(0);
-    Cell *c = eval(environment,p->cons);
+    Cell *c = eval(environment,p->cell);
     mu_assert("Error - eval1.1 ",c != 0);
-    mu_assert("Error - eval1.2 ",c -> cdr == 0);
-    mu_assert("Error - eval1.3 ",(long) c -> car == 27);
+    mu_assert("Error - eval1.2 ",c -> next == 0);
+    mu_assert("Error - eval1.3 ",(long) c -> datum == 27);
     return 0;
 }
 static char *test_eval2(){
@@ -286,10 +286,10 @@ static char *test_eval2(){
     char **array = tokenize(str,&parens);
     Parser *p = parse(array);
     ENVIRONMENT *environment = environment_new(0);
-    Cell *c = eval(environment,p->cons);
+    Cell *c = eval(environment,p->cell);
     mu_assert("Error - eval2.1 ",c != 0);
-    mu_assert("Error - eval2.2 ",c -> cdr == 0);
-    mu_assert("Error - eval2.3 ",c -> car == 0);
+    mu_assert("Error - eval2.2 ",c -> next == 0);
+    mu_assert("Error - eval2.3 ",c -> datum == 0);
     mu_assert("Error - eval2.4 ",c -> type == TYPE_TRUE);
     return 0;
 }
@@ -297,9 +297,9 @@ static char *test_eval3(){
     char str[] = "abc (+ 4 5) xyz)";
     Cell *c = eval_main(str);
     mu_assert("Error - eval3.1 ",c != 0);
-    mu_assert("Error - eval3.2 ",!strcmp(c->car,"abc"));
-    mu_assert("Error - eval3.3 ",(long)c->cdr->car == 9);
-    mu_assert("Error - eval3.3 ",!strcmp(c->cdr->cdr->car,"xyz"));
+    mu_assert("Error - eval3.2 ",!strcmp(c->datum,"abc"));
+    mu_assert("Error - eval3.3 ",(long)c->next->datum == 9);
+    mu_assert("Error - eval3.3 ",!strcmp(c->next->next->datum,"xyz"));
     return 0;
 }
 static char *test_def1(){
@@ -307,16 +307,16 @@ static char *test_def1(){
     char str[] = "(def five 5) five";
     Cell *c = eval_main(str);
     mu_assert("Error - def1.0 ",c->type == TYPE_TRUE);
-    mu_assert("Error - def1.1 ",c->cdr->type == TYPE_INT);
-    mu_assert("Error - def1.2 ",(long)c->cdr->car == 5);
+    mu_assert("Error - def1.1 ",c->next->type == TYPE_INT);
+    mu_assert("Error - def1.2 ",(long)c->next->datum == 5);
     return 0;
 }
 static char *test_def2(){
     char str[] = "(def five (lambda () (+ 2 3))) (five)";
     Cell *c = eval_main(str);
     mu_assert("Error - def2.0 ",c->type == TYPE_TRUE);
-    mu_assert("Error - def2.1 ",c->cdr->type == TYPE_INT);
-    mu_assert("Error - def2.2 ",(long)c->cdr->car == 5);
+    mu_assert("Error - def2.1 ",c->next->type == TYPE_INT);
+    mu_assert("Error - def2.2 ",(long)c->next->datum == 5);
     return 0;
 }
 static char *test_environment(){
@@ -342,8 +342,8 @@ static char *test_lambda1(){
     char **array = tokenize(str,&parens);
     Parser *p = parse(array);
     ENVIRONMENT *environment = environment_new(0);
-    Cell *c = eval(environment,p->cons);
-    mu_assert("Error - lambda1.1 ",(long)c->car == 4);
+    Cell *c = eval(environment,p->cell);
+    mu_assert("Error - lambda1.1 ",(long)c->datum == 4);
     return 0;
 }
 static char *test_lambda2(){
@@ -352,9 +352,9 @@ static char *test_lambda2(){
     char **array = tokenize(str,&parens);
     Parser *p = parse(array);
     ENVIRONMENT *environment = environment_new(0);
-    Cell *c = eval(environment,p->cons);
+    Cell *c = eval(environment,p->cell);
     mu_assert("Error - lambda2.0 ",c->type == TYPE_INT);
-    mu_assert("Error - lambda2.1 ",(long)c->car == 120);
+    mu_assert("Error - lambda2.1 ",(long)c->datum == 120);
     return 0;
 }
  
@@ -364,8 +364,8 @@ static char *test_lambda3(){
     char **array = tokenize(str,&parens);
     Parser *p = parse(array);
     ENVIRONMENT *environment = environment_new(0);
-    Cell *c = eval(environment,p->cons);
-    mu_assert("Error - lambda3.1 ",(long)c->car == 92);
+    Cell *c = eval(environment,p->cell);
+    mu_assert("Error - lambda3.1 ",(long)c->datum == 92);
     return 0;
 }
 static char *test_lambda4(){
@@ -374,8 +374,8 @@ static char *test_lambda4(){
     char **array = tokenize(str,&parens);
     Parser *p = parse(array);
     ENVIRONMENT *environment = environment_new(0);
-    Cell *c = eval(environment,p->cons);
-    mu_assert("Error - lambda4.0 ",(long)c->car == 255);
+    Cell *c = eval(environment,p->cell);
+    mu_assert("Error - lambda4.0 ",(long)c->datum == 255);
     return 0;
 }
 static char *test_lambda5(){
@@ -384,28 +384,28 @@ static char *test_lambda5(){
     char **array = tokenize(str,&parens);
     Parser *p = parse(array);
     ENVIRONMENT *environment = environment_new(0);
-    Cell *c = eval(environment,p->cons);
+    Cell *c = eval(environment,p->cell);
     mu_assert("Error - lambda5.0 ",c->type == TYPE_INT);
-    mu_assert("Error - lambda5.1 ",(long) c->car == 6);
+    mu_assert("Error - lambda5.1 ",(long) c->datum == 6);
     return 0;
 }
 static char *test_lambda6(){
     char str[] = "(def add (lambda (x y) (+ x y))) (add 56 7)";
     Cell *c = eval_main(str);
     mu_assert("Error - lambda6.0 ",c->type == TYPE_TRUE);
-    mu_assert("Error - lambda6.1 ",(long)c->cdr->car == 63);
+    mu_assert("Error - lambda6.1 ",(long)c->next->datum == 63);
     return 0;
 }
 static char *test_lambda7(){
     char str[] = "(def cons (lambda (x y) (lambda (m) (m x y)))) (def car (lambda (z) (z (lambda (p q) p)))) (def cdr (lambda (z) (z (lambda (p q) q)))) (car (cons 99 202)) (cdr (cons 99 202))"; 
     Cell *c = eval_main(str);
     mu_assert("Error - lambda7.0 ",c->type == TYPE_TRUE);
-    mu_assert("Error - lambda7.1 ",c->cdr->type == TYPE_TRUE);
-    mu_assert("Error - lambda7.2 ",c->cdr->cdr->type == TYPE_TRUE);
-    mu_assert("Error - lambda7.3 ",c->cdr->cdr->cdr->type == TYPE_INT);
-    mu_assert("Error - lambda7.4 ",c->cdr->cdr->cdr->cdr->type == TYPE_INT);
-    mu_assert("Error - lambda7.5 ",(long) c->cdr->cdr->cdr->car == 99);
-    mu_assert("Error - lambda7.6 ",(long) c->cdr->cdr->cdr->cdr->car == 202);
+    mu_assert("Error - lambda7.1 ",c->next->type == TYPE_TRUE);
+    mu_assert("Error - lambda7.2 ",c->next->next->type == TYPE_TRUE);
+    mu_assert("Error - lambda7.3 ",c->next->next->next->type == TYPE_INT);
+    mu_assert("Error - lambda7.4 ",c->next->next->next->next->type == TYPE_INT);
+    mu_assert("Error - lambda7.5 ",(long) c->next->next->next->datum == 99);
+    mu_assert("Error - lambda7.6 ",(long) c->next->next->next->next->datum == 202);
     return 0;
 }
 static char *test_lambda8(){
@@ -413,6 +413,89 @@ static char *test_lambda8(){
     eval_main(str);
     return 0;
 }
+static char *test_quote1(){
+    char str[] = "(quote 5)";
+    Cell *c = eval_main(str);
+    mu_assert("Error - quote1.0 ",(long)c->datum == 5);
+    return 0;
+}
+static char *test_quote2(){
+    char str[] = "(quote (atom abc))";
+    Cell *c = eval_main(str);
+    mu_assert("Error - quote2.0 ",c->type == TYPE_LIST);
+    mu_assert("Error - quote2.1 ",((Cell *)c->datum)->type == TYPE_SYMBOL);
+    c = (Cell *)c->datum;
+    mu_assert("Error - quote2.2 ",!strcmp(c->datum, "atom"));
+    c = (Cell *)c->next;
+    mu_assert("Error - quote2.2 ",!strcmp(c->datum, "abc"));
+    c = (Cell *)c->next;
+    mu_assert("Error - quote2.3 ",c==0);
+    return 0;
+}
+static char *test_cell_clone1(){
+    char str[] = "5";
+    Cell *c = eval_main(str);
+    Cell *clone = cell_clone(c);
+    cell_print(clone);
+    printf("equal: %i\n",cell_equal(c,clone));
+    return 0;
+}
+static char *test_cell_clone2(){
+    char str[] = "(quote (5))";
+    Cell *c = eval_main(str);
+    Cell *clone = cell_clone(c);
+    cell_print(clone);
+    printf("equal: %i\n",cell_equal(c,clone));
+    return 0;
+}
+static char *test_cell_clone3(){
+    char str[] = "(quote (5 4 3 2 (+ 2 3)))";
+    Cell *c = eval_main(str);
+    Cell *clone = cell_clone(c);
+    cell_print(clone);
+    printf("equal: %i\n",cell_equal(c,clone));
+    return 0;
+}
+static char *test_cell_clone4(){
+    char str[] = "(quote (lambda (p1 p2) (+ 2 3)))";
+    Cell *c = eval_main(str);
+    Cell *clone = cell_clone(c);
+    cell_print(clone);
+    printf("equal: %i\n",cell_equal(c,clone));
+    return 0;
+}
+static char *test_cell_clone5(){
+    char str[] = "(quote (def abc (lambda (p1 p2) (+ (+ 6 7 9) 3))))";
+    Cell *c = eval_main(str);
+    Cell *clone = cell_clone(c);
+    cell_print(clone);
+    printf("equal: %i\n",cell_equal(c,clone));
+    return 0;
+}
+static char *test_cons1(){
+    char str[] = "(cons 5 (quote (10)))";
+    Cell *c = eval_main(str);
+    mu_assert("Error - cons1.0 ",c->type == TYPE_LIST);
+    mu_assert("Error - cons1.1 ",(long)((Cell *)c->datum)->datum == 5);
+    mu_assert("Error - cons1.2 ",(long)((Cell *)c->datum)->next->datum == 10);
+    mu_assert("Error - cons1.3 ",((Cell *)c->datum)->next->next== 0);
+    return 0;
+}
+static char *test_cons2(){
+    char str[] = "(cons (quote (abc def)) (quote (10 47)))";
+    Cell *c = eval_main(str);
+    mu_assert("Error - cons2.0 ",c->type == TYPE_LIST);
+    cell_print(c);
+    return 0;
+}
+static char *test_cons3(){
+    char str[] = "(cons (quote (abc def)) (quote ()))";
+    Cell *c = eval_main(str);
+    mu_assert("Error - cons3.0 ",c->type == TYPE_LIST);
+    cell_print(c);
+    return 0;
+}
+ 
  
 char * all_tests() {
     mu_run_test(test_missing_rparen);
@@ -453,6 +536,16 @@ char * all_tests() {
     mu_run_test(test_lambda6);
     mu_run_test(test_lambda7);
     mu_run_test(test_lambda8);
+    mu_run_test(test_quote1);
+    mu_run_test(test_quote2);
+    mu_run_test(test_cell_clone1);
+    mu_run_test(test_cell_clone2);
+    mu_run_test(test_cell_clone3);
+    mu_run_test(test_cell_clone4);
+    mu_run_test(test_cell_clone5);
+    mu_run_test(test_cons1);
+    mu_run_test(test_cons2);
+    mu_run_test(test_cons3);
     if (tests_error != 0) {
         printf("%d errors.\n", tests_error);
     } else {
