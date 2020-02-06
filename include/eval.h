@@ -1,6 +1,5 @@
 #ifndef __EVAL_H_INCLUDED__   
 #define __EVAL_H_INCLUDED__
-#include <bst.h>
 #include <cons.h>
 #include <environment.h>
 

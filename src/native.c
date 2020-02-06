@@ -1,0 +1,67 @@
+#include<stdlib.h>
+#include<stdio.h>
+#include<native.h>
+#include<bst.h>
+#include<cons.h>
+#include<string.h>
+#include<eval.h>
+
+BST *dictionary = 0;
+static int mystrcmp (void *p1,void*p2){
+    return strcmp((char *)p1,(char *)p2);
+}
+
+static Cell *is_atom(ENVIRONMENT *environment, Cell *list);
+static Cell *def(ENVIRONMENT *envir, Cell *list);
+static Cell *adder(ENVIRONMENT *envir, Cell *list);
+
+static Cell *native_alloc(void *func,int eval_params){
+    return cons((void *)((unsigned long)func | eval_params),0,TYPE_NATIVE);
+}
+
+void native_initialize(){
+    dictionary = bst_new(mystrcmp);
+    bst_insert(dictionary,"+",native_alloc(adder,1));
+    bst_insert(dictionary,"def",native_alloc(def,0));
+    bst_insert(dictionary,"atom",native_alloc(is_atom,1));
+}
+int native_eval_params(LAMBDA lambda){
+    return ((unsigned long)lambda & 1);
+}
+
+LAMBDA native_ptr(LAMBDA lambda){
+    return (LAMBDA) ((unsigned long)lambda & ~(1));
+}
+Cell *native_fetch(char *name){
+    Cell *cell = (Cell *)bst_search(dictionary,name);
+    return cell;
+}
+
+static Cell *adder(ENVIRONMENT *envir, Cell *list){
+    long l = 0;
+    while(list){
+        l = l + (long)list->car;
+        list = list->cdr;
+    }
+    Cell *c = cons((void *)l,0,TYPE_INT);
+    return c;
+}
+static Cell *def(ENVIRONMENT *envir, Cell *list){
+    Cell *c;
+    if(list->type == TYPE_SYMBOL){
+        environment_add(envir,list->car,list->cdr);
+        c = cons(0,0,TYPE_TRUE);
+    } else{
+        c = cons(0,0,TYPE_NIL);
+    }
+    return c;
+}
+static Cell *is_atom(ENVIRONMENT *environment, Cell *list){
+    if(cons_len(list) != 1){
+      Cell *c = cons(0,0,TYPE_NIL);
+      return c;
+    }
+    Cell *c = cons(0,0,TYPE_TRUE);
+    if(c->type == TYPE_LIST) c->type = TYPE_NIL;
+    return c;
+}

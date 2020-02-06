@@ -6,7 +6,7 @@
 #include <bst.h>
 #include <eval.h>
 #include <environment.h>
-#include <kernel.h>
+#include <native.h>
 
 int tests_run = 0;
 int tests_error = 0;
@@ -274,8 +274,6 @@ static char *test_eval1(){
     char **array = tokenize(str,&parens);
     Parser *p = parse(array);
     ENVIRONMENT *environment = environment_new(0);
-    environment_add(environment,"+",cons(adder,0,TYPE_NATIVE));
-    environment_add(environment,"atom",cons(is_atom,0,TYPE_NATIVE));
     Cell *c = eval(environment,p->cons);
     mu_assert("Error - eval1.1 ",c != 0);
     mu_assert("Error - eval1.2 ",c -> cdr == 0);
@@ -288,7 +286,6 @@ static char *test_eval2(){
     char **array = tokenize(str,&parens);
     Parser *p = parse(array);
     ENVIRONMENT *environment = environment_new(0);
-    environment_add(environment,"atom",cons(is_atom,0,TYPE_NATIVE));
     Cell *c = eval(environment,p->cons);
     mu_assert("Error - eval2.1 ",c != 0);
     mu_assert("Error - eval2.2 ",c -> cdr == 0);
@@ -345,8 +342,6 @@ static char *test_lambda1(){
     char **array = tokenize(str,&parens);
     Parser *p = parse(array);
     ENVIRONMENT *environment = environment_new(0);
-    environment_add(environment,"+",cons(adder,0,TYPE_NATIVE));
-    environment_add(environment,"atom",cons(is_atom,0,TYPE_NATIVE));
     Cell *c = eval(environment,p->cons);
     mu_assert("Error - lambda1.1 ",(long)c->car == 4);
     return 0;
@@ -357,8 +352,6 @@ static char *test_lambda2(){
     char **array = tokenize(str,&parens);
     Parser *p = parse(array);
     ENVIRONMENT *environment = environment_new(0);
-    environment_add(environment,"+",cons(adder,0,TYPE_NATIVE));
-    environment_add(environment,"atom",cons(is_atom,0,TYPE_NATIVE));
     Cell *c = eval(environment,p->cons);
     mu_assert("Error - lambda2.0 ",c->type == TYPE_INT);
     mu_assert("Error - lambda2.1 ",(long)c->car == 120);
@@ -371,8 +364,6 @@ static char *test_lambda3(){
     char **array = tokenize(str,&parens);
     Parser *p = parse(array);
     ENVIRONMENT *environment = environment_new(0);
-    environment_add(environment,"+",cons(adder,0,TYPE_NATIVE));
-    environment_add(environment,"atom",cons(is_atom,0,TYPE_NATIVE));
     Cell *c = eval(environment,p->cons);
     mu_assert("Error - lambda3.1 ",(long)c->car == 92);
     return 0;
@@ -393,7 +384,6 @@ static char *test_lambda5(){
     char **array = tokenize(str,&parens);
     Parser *p = parse(array);
     ENVIRONMENT *environment = environment_new(0);
-    environment_add(environment,"+",cons(adder,0,TYPE_NATIVE));
     Cell *c = eval(environment,p->cons);
     mu_assert("Error - lambda5.0 ",c->type == TYPE_INT);
     mu_assert("Error - lambda5.1 ",(long) c->car == 6);
