@@ -422,6 +422,32 @@ static char *test_lambda8(){
     eval_main(str);
     return 0;
 }
+static char *test_atom1(){
+    char str[] = "(atom 5)";
+    Cell *c = eval_main(str);
+    mu_assert("Error - atom1.0 ",c->type == TYPE_TRUE);
+    return 0;
+}
+static char *test_atom2(){
+    char str[] = "(atom abc)";
+    Cell *c = eval_main(str);
+    mu_assert("Error - atom2.0 ",c->type == TYPE_TRUE);
+    return 0;
+}
+static char *test_atom3(){
+    char str[] = "(atom (list))";
+    Cell *c = eval_main(str);
+    mu_assert("Error - atom3.0 ",c->type == TYPE_LIST);
+    mu_assert("Error - atom3.1 ",c->datum == 0);
+    return 0;
+}
+static char *test_atom4(){
+    char str[] = "(atom (list 1 2 3))";
+    Cell *c = eval_main(str);
+    mu_assert("Error - atom4.0 ",c->type == TYPE_LIST);
+    mu_assert("Error - atom4.1 ",c->datum == 0);
+    return 0;
+}
 static char *test_quote1(){
     char str[] = "(quote 5)";
     Cell *c = eval_main(str);
@@ -554,7 +580,95 @@ static char *test_car_cdr1(){
     mu_assert("Error - car_cdr1.1 ",(long)c->datum == 3);
     return 0;
 }
- 
+static char *test_list1(){
+    char str[] = "(list 1 2 3)";
+    Cell *c = eval_main(str);
+    mu_assert("Error - test1.0 ",c->type == TYPE_LIST);
+    mu_assert("Error - test1.1 ",(long)((Cell *)c->datum)->datum == 1);
+    c = ((Cell *)c->datum)->next;
+    mu_assert("Error - test1.2 ",(long)(c->datum) == 2);
+    c = c->next;
+    mu_assert("Error - test1.3 ",(long)(c->datum) == 3);
+    c = c->next;
+    mu_assert("Error - test1.4 ",c == 0);
+    return 0;
+}
+static char *test_list2(){
+    char str[] = "(list)";
+    Cell *c = eval_main(str);
+    mu_assert("Error - test2.0 ",c->type == TYPE_LIST);
+    mu_assert("Error - test2.1 ",c->datum == 0);
+    return 0;
+}
+static char *test_list3(){
+    char str[] = "(list (list))";
+    Cell *c = eval_main(str);
+    mu_assert("Error - test3.0 ",c->type == TYPE_LIST);
+    mu_assert("Error - test3.1 ",(long)((Cell *)c->datum)->type == TYPE_LIST);
+    c = (Cell *)c->datum;
+    mu_assert("Error - test3.2 ",c->datum == 0);
+    return 0;
+}
+static char *test_eq1(){
+    char str[] = "(eq 1 1)";
+    Cell *c = eval_main(str);
+    mu_assert("Error - testeq1.0 ",c->type == TYPE_TRUE);
+    return 0;
+}
+static char *test_eq2(){
+    char str[] = "(eq abc abc)";
+    Cell *c = eval_main(str);
+    mu_assert("Error - testeq2.0 ",c->type == TYPE_TRUE);
+    return 0;
+}
+static char *test_eq3(){
+    char str[] = "(eq (list) (list))";
+    Cell *c = eval_main(str);
+    mu_assert("Error - testeq3.0 ",c->type == TYPE_TRUE);
+    return 0;
+}
+static char *test_eq4(){
+    char str[] = "(eq (list) 1)";
+    Cell *c = eval_main(str);
+    mu_assert("Error - testeq4.0 ",c->type == TYPE_LIST);
+    mu_assert("Error - testeq4.1 ",c->datum == 0);
+    return 0;
+}
+static char *test_eq5(){
+    char str[] = "(eq (list 1) (list))";
+    Cell *c = eval_main(str);
+    mu_assert("Error - testeq5.0 ",c->type == TYPE_LIST);
+    mu_assert("Error - testeq5.1 ",c->datum == 0);
+    return 0;
+}
+static char *test_eq6(){
+    char str[] = "(eq 1 2 3)";
+    Cell *c = eval_main(str);
+    mu_assert("Error - testeq6.0 ",c->type == TYPE_LIST);
+    mu_assert("Error - testeq6.1 ",c->datum == 0);
+    return 0;
+}
+static char *test_eq7(){
+    char str[] = "(eq 1 )";
+    Cell *c = eval_main(str);
+    mu_assert("Error - testeq7.0 ",c->type == TYPE_LIST);
+    mu_assert("Error - testeq7.1 ",c->datum == 0);
+    return 0;
+}
+static char *test_eq8(){
+    char str[] = "(eq abc 123 )";
+    Cell *c = eval_main(str);
+    mu_assert("Error - testeq8.0 ",c->type == TYPE_LIST);
+    mu_assert("Error - testeq8.1 ",c->datum == 0);
+    return 0;
+}
+static char *test_eq9(){
+    char str[] = "(eq 2 3 )";
+    Cell *c = eval_main(str);
+    mu_assert("Error - testeq8.0 ",c->type == TYPE_LIST);
+    mu_assert("Error - testeq8.1 ",c->datum == 0);
+    return 0;
+}
  
 char * all_tests() {
     mu_run_test(test_missing_rparen);
@@ -596,6 +710,10 @@ char * all_tests() {
     mu_run_test(test_lambda6);
     mu_run_test(test_lambda7);
     mu_run_test(test_lambda8);
+    mu_run_test(test_atom1);
+    mu_run_test(test_atom2);
+    mu_run_test(test_atom3);
+    mu_run_test(test_atom4);
     mu_run_test(test_quote1);
     mu_run_test(test_quote2);
     mu_run_test(test_cell_clone1);
@@ -613,6 +731,18 @@ char * all_tests() {
     mu_run_test(test_cdr2);
     mu_run_test(test_cdr3);
     mu_run_test(test_car_cdr1);
+    mu_run_test(test_list1);
+    mu_run_test(test_list2);
+    mu_run_test(test_list3);
+    mu_run_test(test_eq1);
+    mu_run_test(test_eq2);
+    mu_run_test(test_eq3);
+    mu_run_test(test_eq4);
+    mu_run_test(test_eq5);
+    mu_run_test(test_eq6);
+    mu_run_test(test_eq7);
+    mu_run_test(test_eq8);
+    mu_run_test(test_eq9);
     if (tests_error != 0) {
         printf("%d errors.\n", tests_error);
     } else {

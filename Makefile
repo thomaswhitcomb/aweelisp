@@ -23,8 +23,12 @@ $(EXE): $(OBJS)
 	@echo 
 	gcc -o $@ $^ $(CFLAGS) $(LIBS)
 
-.PHONY: clean test
+.PHONY: clean test show
 
+show:
+	@echo $(CFILES)
+	@echo $(HEADERS)
+	@echo $(OBJS)
 clean:
 	rm -f $(OBJS) 
 	rm -f $(EXE) 
