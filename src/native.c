@@ -16,6 +16,8 @@ static Cell *def(ENVIRONMENT *envir, Cell *list);
 static Cell *adder(ENVIRONMENT *envir, Cell *list);
 static Cell *quote(ENVIRONMENT *envir, Cell *list);
 static Cell *cons(ENVIRONMENT *envir, Cell *list);
+static Cell *car(ENVIRONMENT *envir, Cell *list);
+static Cell *cdr(ENVIRONMENT *envir, Cell *list);
 
 static Cell *native_alloc(void *func,int eval_params){
     return cell_new((void *)((unsigned long)func | eval_params),0,TYPE_NATIVE);
@@ -28,6 +30,8 @@ void native_initialize(){
     bst_insert(dictionary,"atom",native_alloc(is_atom,1));
     bst_insert(dictionary,"quote",native_alloc(quote,0));
     bst_insert(dictionary,"cons",native_alloc(cons,1));
+    bst_insert(dictionary,"car",native_alloc(car,1));
+    bst_insert(dictionary,"cdr",native_alloc(cdr,1));
 }
 int native_eval_params(LAMBDA lambda){
     return ((unsigned long)lambda & 1);
@@ -82,10 +86,44 @@ static Cell *cons(ENVIRONMENT *environment, Cell *list){
     if(list->next->type != TYPE_LIST){
         return cell_new(0,0,TYPE_NIL);
     }
-    //cell_print((Cell *)list->next->datum);
     Cell *clone = cell_clone(list);
     Cell *clone_next = clone->next;
     clone->next = clone_next->datum;
-    Cell *n = cell_new(clone,0,TYPE_LIST);
-    return n;
+    return cell_new(clone,0,TYPE_LIST);
+}
+static Cell *car(ENVIRONMENT *environment, Cell *list){
+    if(cell_len(list) != 1){
+        return cell_new(0,0,TYPE_NIL);
+    }
+    if(list->type != TYPE_LIST){
+        return cell_new(0,0,TYPE_NIL);
+    }
+    if(list->datum == 0){
+        return cell_new(0,0,TYPE_NIL);
+    }
+    Cell *first = (Cell *)list->datum;
+    Cell *save = first->next;
+    first->next = 0;
+    Cell *clone = cell_clone(first);
+    first->next = save;
+    return clone;
+}
+static Cell *cdr(ENVIRONMENT *environment, Cell *list){
+    if(cell_len(list) != 1){
+        return cell_new(0,0,TYPE_NIL);
+    }
+    if(list->type != TYPE_LIST){
+        return cell_new(0,0,TYPE_NIL);
+    }
+    // zero lenth list
+    if(list->datum == 0){
+        return cell_new(0,0,TYPE_LIST);
+    }
+    // one element list
+    if(((Cell *)list->datum)->next == 0){
+        return cell_new(0,0,TYPE_LIST);
+    }
+    Cell *clone = cell_clone(((Cell *)list->datum)->next);
+    Cell *l = cell_new(clone,0,TYPE_LIST);
+    return l;
 }

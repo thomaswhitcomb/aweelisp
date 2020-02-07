@@ -220,6 +220,15 @@ static char *test_parse3(){
     mu_assert("Error - test_parse3.9",list->next->next->next == 0);
     return 0;
 }
+static char *test_parse4(){
+    int parens;
+    char str[] = "()";
+    char **array = tokenize(str,&parens);
+    Parser *p = parse(array);
+    mu_assert("Error - test_parse4.1",p->cell->type == TYPE_LIST);
+    mu_assert("Error - test_parse4.2",p->cell->datum == 0);
+    return 0;
+}
 static int myintcmp (void *p1,void*p2){
     if((int) p1 == (int)p2) return 0;
     else if((int) p1 > (int)p2) return -1;
@@ -495,6 +504,56 @@ static char *test_cons3(){
     cell_print(c);
     return 0;
 }
+static char *test_car1(){
+    char str[] = "(car (quote ()))";
+    Cell *c = eval_main(str);
+    mu_assert("Error - car1.0 ",c->type == TYPE_NIL);
+    return 0;
+}
+static char *test_car2(){
+    char str[] = "(car (quote (1)))";
+    Cell *c = eval_main(str);
+    mu_assert("Error - car2.0 ",c->type == TYPE_INT);
+    mu_assert("Error - car2.1 ",(long)c->datum == 1);
+    return 0;
+}
+static char *test_car3(){
+    char str[] = "(car (quote ((1 2) 3 4)))";
+    Cell *c = eval_main(str);
+    mu_assert("Error - car3.0 ",c->type == TYPE_LIST);
+    mu_assert("Error - car3.1 ",(long)(((Cell *)c->datum)->datum) == 1);
+    mu_assert("Error - car3.2 ",(long)(((Cell *)c->datum)->next->datum) == 2);
+    return 0;
+}
+static char *test_cdr1(){
+    char str[] = "(cdr (quote ()))";
+    Cell *c = eval_main(str);
+    mu_assert("Error - cdr1.0 ",c->type == TYPE_LIST);
+    mu_assert("Error - cdr1.1 ",(long) c->datum == 0);
+    return 0;
+}
+static char *test_cdr2(){
+    char str[] = "(cdr (quote (1)))";
+    Cell *c = eval_main(str);
+    mu_assert("Error - cdr2.0 ",c->type == TYPE_LIST);
+    mu_assert("Error - cdr2.1 ",c->datum == 0);
+    return 0;
+}
+static char *test_cdr3(){
+    char str[] = "(cdr (quote ((1 2) 3 4)))";
+    Cell *c = eval_main(str);
+    mu_assert("Error - cdr3.0 ",c->type == TYPE_LIST);
+    mu_assert("Error - cdr3.1 ",((long)((Cell *)c->datum)->datum) == 3);
+    mu_assert("Error - cdr3.1 ",(long)((Cell *)c->datum)->next->datum == 4);
+    return 0;
+}
+static char *test_car_cdr1(){
+    char str[] = "(car (cdr (quote ((1 2) 3 4))))";
+    Cell *c = eval_main(str);
+    mu_assert("Error - car_cdr1.0 ",c->type == TYPE_INT);
+    mu_assert("Error - car_cdr1.1 ",(long)c->datum == 3);
+    return 0;
+}
  
  
 char * all_tests() {
@@ -520,6 +579,7 @@ char * all_tests() {
     mu_run_test(test_parse1);
     mu_run_test(test_parse2);
     mu_run_test(test_parse3);
+    mu_run_test(test_parse4);
     mu_run_test(test_bst1);
     mu_run_test(test_bst2);
     mu_run_test(test_eval1);
@@ -546,6 +606,13 @@ char * all_tests() {
     mu_run_test(test_cons1);
     mu_run_test(test_cons2);
     mu_run_test(test_cons3);
+    mu_run_test(test_car1);
+    mu_run_test(test_car2);
+    mu_run_test(test_car3);
+    mu_run_test(test_cdr1);
+    mu_run_test(test_cdr2);
+    mu_run_test(test_cdr3);
+    mu_run_test(test_car_cdr1);
     if (tests_error != 0) {
         printf("%d errors.\n", tests_error);
     } else {
