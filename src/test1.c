@@ -10,7 +10,7 @@
 
 int tests_run = 0;
 int tests_error = 0;
- 
+
 static char *test_missing_rparen(){
     char str[] = "Da ( ()";
     int parens;
@@ -366,7 +366,7 @@ static char *test_lambda2(){
     mu_assert("Error - lambda2.1 ",(long)c->datum == 120);
     return 0;
 }
- 
+
 static char *test_lambda3(){
     int parens;
     char str[] = "(+ ((lambda () (+ 1 3)))  ((lambda () (+ 71 ((lambda () (+ 9 8)))))))";
@@ -406,7 +406,7 @@ static char *test_lambda6(){
     return 0;
 }
 static char *test_lambda7(){
-    char str[] = "(def cons (lambda (x y) (lambda (m) (m x y)))) (def car (lambda (z) (z (lambda (p q) p)))) (def cdr (lambda (z) (z (lambda (p q) q)))) (car (cons 99 202)) (cdr (cons 99 202))"; 
+    char str[] = "(def cons (lambda (x y) (lambda (m) (m x y)))) (def car (lambda (z) (z (lambda (p q) p)))) (def cdr (lambda (z) (z (lambda (p q) q)))) (car (cons 99 202)) (cdr (cons 99 202))";
     Cell *c = eval_main(str);
     mu_assert("Error - lambda7.0 ",c->type == TYPE_TRUE);
     mu_assert("Error - lambda7.1 ",c->next->type == TYPE_TRUE);
@@ -418,7 +418,7 @@ static char *test_lambda7(){
     return 0;
 }
 static char *test_lambda8(){
-    char str[] = "(def cons (lambda (x y) (lambda (m) (m x y)))) (def car (lambda (z) (z (lambda (p q) p)))) (def cdr (lambda (z) (z (lambda (p q) q)))) (cdr (cons 99 202))"; 
+    char str[] = "(def cons (lambda (x y) (lambda (m) (m x y)))) (def car (lambda (z) (z (lambda (p q) p)))) (def cdr (lambda (z) (z (lambda (p q) q)))) (cdr (cons 99 202))";
     eval_main(str);
     return 0;
 }
@@ -448,6 +448,20 @@ static char *test_atom4(){
     mu_assert("Error - atom4.1 ",c->datum == 0);
     return 0;
 }
+static char *test_atom5(){
+    char str [] = "(atom (atom (quote 'a)))";
+    Cell *c = eval_main(str);
+    mu_assert("Error - atom5.0 ",c->type == TYPE_TRUE);
+    return 0;
+}
+static char *test_atom6(){
+    char str [] = "(atom (quote (atom (quote 'a))))";
+    Cell *c = eval_main(str);
+    mu_assert("Error - atom5.0 ",c->type == TYPE_LIST);
+    mu_assert("Error - atom5.1 ",c->datum == 0);
+    return 0;
+}
+
 static char *test_quote1(){
     char str[] = "(quote 5)";
     Cell *c = eval_main(str);
@@ -669,7 +683,7 @@ static char *test_eq9(){
     mu_assert("Error - testeq8.1 ",c->datum == 0);
     return 0;
 }
- 
+
 char * all_tests() {
     mu_run_test(test_missing_rparen);
     mu_run_test(test_missing_lparen);
@@ -714,6 +728,8 @@ char * all_tests() {
     mu_run_test(test_atom2);
     mu_run_test(test_atom3);
     mu_run_test(test_atom4);
+    mu_run_test(test_atom5);
+    mu_run_test(test_atom6);
     mu_run_test(test_quote1);
     mu_run_test(test_quote2);
     mu_run_test(test_cell_clone1);

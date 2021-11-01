@@ -61,7 +61,8 @@ static Cell *adder(ENVIRONMENT *envir, Cell *list){
 static Cell *def(ENVIRONMENT *envir, Cell *list){
     Cell *c;
     if(list->type == TYPE_SYMBOL){
-        environment_add(envir,list->datum,list->next);
+        // CLONE IT
+        environment_add(envir,list->datum,cell_clone(list->next));
         c = cell_new(0,0,TYPE_TRUE);
     } else{
         c = cell_new(0,0,TYPE_LIST);
